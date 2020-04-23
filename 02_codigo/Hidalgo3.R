@@ -24,9 +24,11 @@ covid_15_04 <- read_csv("01_datos/15 abril/200415COVID19MEXICO.csv")
 
 # Municipios de Hgo 
 
-catalogo_mun <- read_excel("01_datos/diccionario_datos_covid19/Catalogos_0412.xlsx", 
-                           sheet = "Catálogo MUNICIPIOS", range = "A466:C550", col_names = c("clave_municipio", "nombre_municipio", "clave_entidad"))
-#View(catalogo_mun)
+catalogo_mun <- read_excel("01_datos/13abril2020/diccionario_datos_covid19/Catalogos_0412.xlsx", 
+                             sheet = "Catálogo MUNICIPIOS", range = "A466:C550", 
+                           col_names = c("clave_municipio", "nombre_municipio", "clave_entidad"))
+
+View(catalogo_mun)
 
 # Archivo geojson municipios Hgo
 
