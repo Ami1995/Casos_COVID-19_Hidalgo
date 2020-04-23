@@ -37,21 +37,40 @@ mapa_hgo <- st_read("http://datamx.io/dataset/f9b34c5a-21bd-4cdd-90b1-12c9656d64
 
 # Juguemos ----
 
+covid_14_04 %>% 
+  group_by(ENTIDAD_RES) %>% 
+  filter(RESULTADO == 1) %>% 
+  count(RESULTADO) %>% 
+  ungroup() %>% 
+  summarise(total_casos = sum(n))
+
+# 5,399 casos en total en el país
+
 hgo_dia2 <- covid_14_04 %>% 
   filter(ENTIDAD_RES == 13 & RESULTADO == 1)
 
-# Numero de casos confirmados por municipio 
-
-municipios_dia2 <- hgo_dia2 %>% 
+hgo_dia2 %>% 
   group_by(MUNICIPIO_RES) %>% 
+  count(RESULTADO) %>% 
+  ungroup() %>% 
+  summarise(total_casos = sum(n))
+
+# 64 casos confirmados COVID-19 en total en Hidalgo
+
+# Numero de casos confirmados por municipio ----
+
+casos_munihgo <- merge(hgo_dia2, catalogo_mun, 
+                       by.x="MUNICIPIO_RES", 
+                       by.y = "clave_municipio")
+
+
+casos_munhgo2 <- casos_munihgo %>% 
+  select(MUNICIPIO_RES, nombre_municipio, RESULTADO) %>% 
+  group_by(nombre_municipio) %>% 
   count(RESULTADO) %>% 
   arrange(-n) 
 
-# Nombres de municipios con casos confirmados
-  
-catalogo_mun %>% 
-  filter(clave_municipio %in% c("048", "051","077","069","021","013","052","003","019","022","023","024","028","039","055","063","065","067")) %>% 
-  select(-c(clave_entidad))
+casos_munhgo2 
 
 # Paletas
 
@@ -62,8 +81,8 @@ RColorBrewer::display.brewer.all()
 
 # Grafica de casos pos. por municipio ----
 
-municipios_dia2 %>% 
-  ggplot(aes(x = fct_reorder(MUNICIPIO_RES, 
+casos_munhgo2 %>% 
+  ggplot(aes(x = fct_reorder(nombre_municipio, 
                              -n),
              y = n, fill = n)) +
   geom_col() +
@@ -119,4 +138,15 @@ leaflet(mapa_muni_hgo2, options = leafletOptions(zoomControl = F)) %>%
             labels = c("Casos positivos COVID-19", 
                        "Sin casos"), 
             opacity = 1) 
+
+# Añadido 22 abril ---- 
+# defunciones totales 
+
+covid_14_04 %>% 
+  filter(!is.na(FECHA_DEF)) %>% 
+  filter(ENTIDAD_RES == 13 & RESULTADO == 1) %>% 
+  count(FECHA_DEF) %>% 
+  summarise(tot_def = sum(n))
+
+# 8 def. tot. 
 
