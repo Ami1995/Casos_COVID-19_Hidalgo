@@ -19,8 +19,9 @@ options(scipen=999)
 
 # Datos Abiertos (SSA Federal)
 
-covid_13_04 <- read_csv("01_datos/COVID19_Mexico_13.04.2020.csv")
-#View(covid_13_04)
+covid_13_04 <- read_csv("01_datos/13abril2020/COVID19_Mexico_13.04.2020.csv")
+
+View(covid_13_04)
 
 # Municipios de Hgo 
 
@@ -37,21 +38,40 @@ mapa_hgo <- st_read("http://datamx.io/dataset/f9b34c5a-21bd-4cdd-90b1-12c9656d64
 
 # Juguemos ----
 
+covid_13_04 %>% 
+  group_by(ENTIDAD_RES) %>% 
+  filter(RESULTADO == 1) %>% 
+  count(RESULTADO) %>% 
+  ungroup() %>% 
+  summarise(total_casos = sum(n))
+
+# 5,014 casos en total en el país
+
 hgo <- covid_13_04 %>% 
   filter(ENTIDAD_RES == 13 & RESULTADO == 1)
 
-# Numero de casos confirmados por municipio 
-
-municipios <- hgo %>% 
+hgo %>% 
   group_by(MUNICIPIO_RES) %>% 
+  count(RESULTADO) %>% 
+  ungroup() %>% 
+  summarise(total_casos = sum(n))
+
+# 59 casos confirmados COVID-19 en total en Hidalgo
+
+# Numero de casos confirmados por municipio ----
+
+casos_munihgo <- merge(hgo, catalogo_mun, 
+                       by.x="MUNICIPIO_RES", 
+                       by.y = "clave_municipio")
+
+
+casos_munhgo <- casos_munihgo %>% 
+  select(MUNICIPIO_RES, nombre_municipio, RESULTADO) %>% 
+  group_by(nombre_municipio) %>% 
   count(RESULTADO) %>% 
   arrange(-n) 
 
-# Nombres de municipios con casos confirmados
-
-catalogo_mun %>% 
-  filter(clave_municipio %in% c("048", "051","077","069","021","052","003","013", "019","022","023","024","028","039","055","063","067")) %>% 
-  select(-c(clave_entidad))
+casos_munhgo 
 
 # Paletas
 
@@ -62,8 +82,8 @@ RColorBrewer::display.brewer.all()
 
 # Grafica de casos pos. por municipio ----
 
-municipios %>% 
-  ggplot(aes(x = fct_reorder(MUNICIPIO_RES, 
+casos_munhgo %>% 
+  ggplot(aes(x = fct_reorder(nombre_municipio, 
                              -n),
              y = n, fill = n)) +
   geom_col() +
@@ -93,13 +113,13 @@ municipios %>%
 
 # Seleccion de municipios en el mapa
 
-mapa_muni_hgo2 <- mapa_hgo %>% 
+mapa_muni_hgo <- mapa_hgo %>% 
   mutate(corona= ifelse(NOMBRE %in% c("Pachuca de Soto", "Mineral de la Reforma", "Tulancingo de Bravo", "Tizayuca", "Emiliano Zapata", "Atotonilco de Tula", "San Agustin Tlaxiaca", "Actopan", "Chilcuautla", "Epazoyucan", "Francisco I. Madero", "Huasca de Ocampo", "Huejutla de Reyes", "Mineral del Monte", "Santiago de Anaya", "Tepeji del Rio de Ocampo", "Tetepango", "Tezontepec de Aldama"),
                         1, 0 ))
 
 # Graficamos
 
-plot(mapa_muni_hgo2, max.plot = 1)
+plot(mapa_muni_hgo, max.plot = 1)
 
 
 # Colores
@@ -108,15 +128,26 @@ palMuni <- colorFactor(palette = c("#18dede", "#de6118"),
                        domain = mapa_muni_hgo2$corona)
 
 
-leaflet(mapa_muni_hgo2, options = leafletOptions(zoomControl = F)) %>% 
+leaflet(mapa_muni_hgo, options = leafletOptions(zoomControl = F)) %>% 
   addTiles() %>% 
   addPolygons(color = "black", 
               weight = 1, 
-              fillColor = palMuni(mapa_muni_hgo2$corona), 
+              fillColor = palMuni(mapa_muni_hgo$corona), 
               fillOpacity = 0.7) %>% 
   addLegend(position = "bottomleft", 
             colors = c("#de6118", "#18dede"), 
             labels = c("Casos positivos COVID-19", 
                        "Sin casos"), 
             opacity = 1) 
+
+# Añadido 22 abril ---- 
+# defunciones totales 
+
+covid_13_04 %>% 
+  filter(!is.na(FECHA_DEF)) %>% 
+  filter(ENTIDAD_RES == 13 & RESULTADO == 1) %>% 
+  count(FECHA_DEF) %>% 
+  summarise(tot_def = sum(n))
+
+# 7 def. tot. 
 
