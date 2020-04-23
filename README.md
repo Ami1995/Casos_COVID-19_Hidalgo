@@ -6,4 +6,3 @@ Fuente: Dirección General de Epidemiología de la Secretaría de Salud Federal 
 
 Este es mi primer intento de conectar un proyecto de R a Github usando Github Desktop, asi que se aceptan comentarios y sugerencias.
 
-Mi correo es: amigabysv@gmail.com
