@@ -4,7 +4,7 @@ Conteo de casos confirmados en Hidalgo para el virus SARS-CoV-2 (COVID-19) por m
 
 Fuente: Dirección General de Epidemiología de la Secretaría de Salud Federal https://www.gob.mx/salud/documentos/datos-abiertos-152127 (actualizaciones diarias y bases históricas)
 
-Espero que estas visualizaciones de datos le sirvan a quien esté interesade en la situación de Hidalgo y sus municipios. Publico las gráficas y mapas en twitter. 
+Espero que estas visualizaciones de datos muy simples le sirvan a quien esté interesadx en la situación de Hidalgo y sus municipios. 
 
 Puedes descargar el zip y correr el código en Rstudio. 
 
