@@ -1,11 +1,9 @@
 **Código elaborado por Ami Gabriela Sosa Vera**
 
-Conteo de casos confirmados en Hidalgo del virus Sars-Cov-2 (COVID-19)
+Conteo de casos confirmados en Hidalgo para el virus Sars-Cov-2 (COVID-19) por municipio. 
 
-Fuente: https://www.gob.mx/salud/documentos/datos-abiertos-152127
+Fuente: Dirección General de Epidemiología de la Secretaría de Salud Federal https://www.gob.mx/salud/documentos/datos-abiertos-152127 (actualizacionesdiarias y bases históricas)
 
-Las bases de datos se abrieron desde el 12 de Abril. Yo comencé a graficar desde el 13 de Abril.
-
-Este es mi primer intento de conectar un proyecto de R a Github usando Github Desktop, asi que se acpetan comentarios y sugerencias.
+Este es mi primer intento de conectar un proyecto de R a Github usando Github Desktop, asi que se aceptan comentarios y sugerencias.
 
 Mi correo es: amigabysv@gmail.com
