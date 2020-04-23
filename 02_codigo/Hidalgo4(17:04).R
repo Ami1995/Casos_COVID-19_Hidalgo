@@ -40,91 +40,37 @@ mapa_hgo <- st_read("http://datamx.io/dataset/f9b34c5a-21bd-4cdd-90b1-12c9656d64
 covid_17_04 %>% 
   group_by(ENTIDAD_RES) %>% 
   filter(RESULTADO == 1) %>% 
-  count(RESULTADO)
+  count(RESULTADO) %>% 
+  ungroup() %>% 
+  summarise(total_casos = sum(n))
 
-hgo_dia4 <- covid_17_04 %>% 
+# 6,875 casos en total en el país
+
+hgo_dia1704 <- covid_17_04 %>% 
   filter(ENTIDAD_RES == 13 & RESULTADO == 1)
 
-hgo_dia4 %>% 
-  count(RESULTADO) 
-
-entidad_nac <- covid_17_04 %>% 
-  select(ENTIDAD_NAC) %>% 
-  count(ENTIDAD_NAC)
-
-
-
-estado <- c("Aguascalientes", "Baja California", "Baja California Sur", "Campeche","Coahuila","Colima","Chiapas","Chihuahua","Ciudad de México","Durango","Guanajuato","Guerrero","Hidalgo","Jalisco","Mexico","Michoacán de Ocampo","Morelos","Nayarit","Nuevo León","Oaxaca","Puebla","Querétaro","Quintana Roo","San Luis Potosí","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatán","Zacatecas")
-clave_estado <- c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32")
-
-mx <- tibble(estado, clave_estado)
-
-país <- merge(entidad_nac, mx, 
-                by.x="ENTIDAD_NAC", 
-                by.y = "clave_estado") 
-
-
-país %>% 
-  count(ENTIDAD_NAC) %>% 
-  arrange(-n) %>% 
-  filter(ENTIDAD_NAC == "09")
-
-país %>% 
-  filter(ENTIDAD_NAC == "09")
-
-# Entidad (ENTIDAD_NAC)
-
-covid_17_04 %>% 
-  filter(RESULTADO == 1) %>% 
-  count(ENTIDAD_NAC) %>% 
-  arrange(-n) %>% 
-  ggplot(aes(x = fct_reorder(ENTIDAD_NAC, -n), y = n, fill = n)) +
-  geom_col() +
-  geom_text(aes(label = n), position=position_dodge(width=0.9), vjust = - 0.5, color = "black", size = 03) +
-  labs(title = "Casos confirmados de COVID-19 en México",
-       subtitle = "CONTEO POR ENTIDAD DE RESIDENCIA", 
-       x = NULL,
-       y = "Número de casos positivos",
-       caption = "Fuente: Datos Abiertos Secretaria de Salud\nElaboración propia. 17 Abril 2020") +
-  scale_fill_distiller(palette = "RdYlGn", direction = -1)
-
-# Entidad (ENTIDAD_RES)
-
-covid_17_04 %>% 
-  filter(RESULTADO == 1) %>% 
-  count(ENTIDAD_RES) %>% 
-  arrange(-n) %>% 
-  ggplot(aes(x = fct_reorder(ENTIDAD_RES, -n), y = n, fill = n)) +
-  geom_col() +
-  geom_text(aes(label = n), position=position_dodge(width=0.9), vjust = - 0.5, color = "black") +
-  labs(title = "Casos confirmados de COVID-19 en México",
-       subtitle = "CONTEO POR ENTIDAD DE RESIDENCIA", 
-       x = NULL,
-       y = "Número de casos positivos",
-       caption = "Fuente: Datos Abiertos Secretaria de Salud\nElaboración propia. 17 Abril 2020") +
-  scale_fill_distiller(palette = "RdYlGn", direction = -1)
-
-
-# Numero de casos confirmados por municipio 
-
-municipios_dia4 <- hgo_dia4 %>% 
+hgo_dia1704 %>% 
   group_by(MUNICIPIO_RES) %>% 
   count(RESULTADO) %>% 
-  arrange(-n) %>% 
-  print(n = Inf)
+  ungroup() %>% 
+  summarise(total_casos = sum(n))
 
-municipios_dia4[,1]
+# 75 casos confirmados COVID-19 en total en Hidalgo
 
-cat4 <- catalogo_mun %>%
-  filter(clave_municipio %in% c("048", "051","077","069", "021","013","052","067", "003","019","022","023","024","028","039","055","061", "063","065","076", "084")) %>%
-  select(-c(clave_entidad))
+# Numero de casos confirmados por municipio ----
 
-# Nombres de municipios con casos confirmados dia 3
+casos_munihgo <- merge(hgo_dia1704, catalogo_mun, 
+                       by.x="MUNICIPIO_RES", 
+                       by.y = "clave_municipio")
 
-orden4 <- merge(municipios_dia4, cat4, 
-                by.x="MUNICIPIO_RES", 
-                by.y = "clave_municipio") %>% 
-  arrange(-n)
+
+casos_munihgo17 <- casos_munihgo %>% 
+  select(MUNICIPIO_RES, nombre_municipio, RESULTADO) %>% 
+  group_by(nombre_municipio) %>% 
+  count(RESULTADO) %>% 
+  arrange(-n) 
+
+casos_munihgo17 
 
 # Paletas
 
@@ -135,8 +81,8 @@ RColorBrewer::display.brewer.all()
 
 # Grafica de casos positivos por municipio ----
 
-municipios_dia4 %>% 
-  ggplot(aes(x = fct_reorder(MUNICIPIO_RES, 
+casos_munihgo17 %>% 
+  ggplot(aes(x = fct_reorder(nombre_municipio, 
                              -n),
              y = n, fill = n)) +
   geom_col() +
@@ -166,7 +112,8 @@ municipios_dia4 %>%
 
 # Seleccion de municipios en el mapa
 
-nombres4 <- orden4[,4]
+casos_munihgo17 %>% 
+  print(n = Inf)
 
 
 mapa_muni_hgo4 <- mapa_hgo %>%
@@ -175,7 +122,6 @@ mapa_muni_hgo4 <- mapa_hgo %>%
 # Graficamos
 
 plot(mapa_muni_hgo4, max.plot = 1)
-
 
 # Colores
 
@@ -195,3 +141,13 @@ leaflet(mapa_muni_hgo4, options = leafletOptions(zoomControl = T)) %>%
                        "Sin casos"), 
             opacity = 1) 
 
+# Añadido 22 abril ---- 
+# defunciones totales 
+
+covid_17_04 %>% 
+  filter(!is.na(FECHA_DEF)) %>% 
+  filter(ENTIDAD_RES == 13 & RESULTADO == 1) %>% 
+  count(FECHA_DEF) %>% 
+  summarise(tot_def = sum(n))
+
+# 11 def. tot. 
