@@ -40,7 +40,12 @@ mapa_hgo <- st_read("http://datamx.io/dataset/f9b34c5a-21bd-4cdd-90b1-12c9656d64
 covid_21_04 %>% 
   group_by(ENTIDAD_RES) %>% 
   filter(RESULTADO == 1) %>% 
-  count(RESULTADO)
+  count(RESULTADO) %>% 
+  ungroup() %>% 
+  summarise(total_casos = sum(n))
+
+# 9,501 casos en total en el país
+
 
 hgo_21 <- covid_21_04 %>% 
   filter(ENTIDAD_RES == 13 & RESULTADO == 1)
@@ -48,12 +53,17 @@ hgo_21 <- covid_21_04 %>%
 hgo_21 %>% 
   group_by(MUNICIPIO_RES) %>% 
   count(RESULTADO) %>% 
-  arrange(-n)
+  ungroup() %>% 
+  summarise(total_casos = sum(n))
 
+# 113 casos confirmados COVID-19 en total en Hidalgo
+
+
+# Numero de casos confirmados por municipio ----
 
 casos_munihgo <- merge(hgo_21, catalogo_mun, 
-                 by.x="MUNICIPIO_RES", 
-                 by.y = "clave_municipio")
+                       by.x="MUNICIPIO_RES", 
+                       by.y = "clave_municipio")
 
 
 casos_munhgo21 <- casos_munihgo %>% 
@@ -62,17 +72,7 @@ casos_munhgo21 <- casos_munihgo %>%
   count(RESULTADO) %>% 
   arrange(-n)
 
-# Numero de casos confirmados por municipio 
-
-municipios_21 <- hgo_21 %>% 
-  group_by(MUNICIPIO_RES) %>% 
-  count(RESULTADO) %>% 
-  arrange(-n) %>% 
-  print(n = Inf)
-
-municipios_21 %>% 
-  select(MUNICIPIO_RES) %>% 
-  print(n = Inf)
+casos_munhgo21
 
 # Paletas
 
@@ -83,38 +83,8 @@ RColorBrewer::display.brewer.all()
 
 # Grafica de casos positivos por municipio ----
 
-
-# Gráfica para comparación de labels
-
-# casos_munhgo21 %>% 
-#   ggplot(aes(x = fct_reorder(nombre_municipio, 
-#                              -n),
-#              y = n, fill = n)) +
-#   geom_col() +
-#   labs(title = "Casos confirmados de COVID-19 en Hidalgo",
-#        subtitle = "CONTEO POR MUNICIPIO DE RESIDENCIA", 
-#        x = NULL,
-#        y = "Número de casos positivos",
-#        caption = "Fuente: Datos Abiertos Secretaria de Salud\nElaboración propia. 21 Abril 2020") +
-#   scale_y_continuous(breaks = seq(0, 40, 5),
-#                      limits = c(0, 40)) +
-#   coord_flip() +
-#   geom_text(aes(label = n), position=position_dodge(width=0.9), hjust = - 0.5, color = "black") +
-#   theme_minimal()+
-#   theme(legend.title = element_blank()) +
-#   theme(panel.grid.minor = element_blank(), 
-#         panel.grid.major = element_line(linetype = "solid"),
-#         title = element_text(size = 12, hjust = 1, color = "black", face = "bold"),
-#         plot.caption = element_text(size = 11, hjust = 1, color = "grey4", face = "italic"),
-#         plot.subtitle = element_text(size = 11, color = "grey4", face = "plain"),
-#         axis.text.y = element_text(size = 10, color = "grey4", face = "plain"), 
-#         axis.title.x = element_text(size = 11, color = "grey4", face = "plain", hjust = 0.5)) +
-#   scale_fill_distiller(palette = "YlGnBu", direction = 1) 
-
-casos_munhgo21
-
-municipios_21 %>% 
-  ggplot(aes(x = fct_reorder(MUNICIPIO_RES, 
+casos_munhgo21 %>% 
+  ggplot(aes(x = fct_reorder(nombre_municipio, 
                              -n),
              y = n, fill = n)) +
   geom_col() +
@@ -146,9 +116,6 @@ municipios_21 %>%
 
 casos_munhgo21 %>% 
   print(n = Inf)
-
-nombres21 <- orden21[,4]
-
 
 mapa_muni_hgo21 <- mapa_hgo %>%
   mutate(corona= ifelse(NOMBRE %in% c("Pachuca de Soto", "Mineral de la Reforma", "Tizayuca", "Tulancingo de Bravo", "Emiliano Zapata", "Atotonilco de Tula", "Metztitlán","San Agustín Tlaxiaca", "Tezontepec de Aldama", "Mixquiahuala de Juárez","Tepeapulco","Tlaxcoapan","Actopan", "Chilcuautla", "Epazoyucan", "Francisco I. Madero", "Huasca de Ocampo", "Huejutla de Reyes", "Mineral del Monte", "San Salvador", "Santiago de Anaya", "Singuilucan", "Tecozautla", "Tepeji del Río de Ocampo", "Tetepango", "Villa de Tezontepec", "Tlahuelilpan","Tula de Allende", "Zempoala","Zimapán"), 1, 0 ))
@@ -184,3 +151,5 @@ covid_21_04 %>%
   filter(ENTIDAD_RES == 13 & RESULTADO == 1) %>% 
   count(FECHA_DEF) %>% 
   summarise(tot_def = sum(n))
+
+# 15 def. tot. 
