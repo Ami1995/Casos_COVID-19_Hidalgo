@@ -37,28 +37,40 @@ mapa_hgo <- st_read("http://datamx.io/dataset/f9b34c5a-21bd-4cdd-90b1-12c9656d64
 
 # Juguemos ----
 
+covid_15_04 %>% 
+  group_by(ENTIDAD_RES) %>% 
+  filter(RESULTADO == 1) %>% 
+  count(RESULTADO) %>% 
+  ungroup() %>% 
+  summarise(total_casos = sum(n))
+
+# 5,847 casos en total en el país
+
 hgo_dia3 <- covid_15_04 %>% 
   filter(ENTIDAD_RES == 13 & RESULTADO == 1)
 
-# Numero de casos confirmados por municipio 
-
-municipios_dia3 <- hgo_dia3 %>% 
+hgo_dia3 %>% 
   group_by(MUNICIPIO_RES) %>% 
+  count(RESULTADO) %>% 
+  ungroup() %>% 
+  summarise(total_casos = sum(n))
+
+# 66 casos confirmados COVID-19 en total en Hidalgo
+
+# Numero de casos confirmados por municipio ----
+
+casos_munihgo <- merge(hgo_dia3, catalogo_mun, 
+                       by.x="MUNICIPIO_RES", 
+                       by.y = "clave_municipio")
+
+
+casos_munhgo3 <- casos_munihgo %>% 
+  select(MUNICIPIO_RES, nombre_municipio, RESULTADO) %>% 
+  group_by(nombre_municipio) %>% 
   count(RESULTADO) %>% 
   arrange(-n) 
 
-municipios_dia3[,1]
-
-cat3 <- catalogo_mun %>%
-  filter(clave_municipio %in% c("048", "051","077","021","069", "013","052","003","019","022","023","024","028","039","055","061", "063","065","067")) %>%
-  select(-c(clave_entidad))
-
-# Nombres de municipios con casos confirmados dia 3
-
-orden3 <- merge(municipios_dia3, cat3, 
-      by.x="MUNICIPIO_RES", 
-      by.y = "clave_municipio") %>% 
-  arrange(-n)
+casos_munhgo3 
 
 # Paletas
 
@@ -69,8 +81,8 @@ RColorBrewer::display.brewer.all()
 
 # Grafica de casos positivos por municipio ----
 
-municipios_dia3 %>% 
-  ggplot(aes(x = fct_reorder(MUNICIPIO_RES, 
+casos_munhgo3 %>% 
+  ggplot(aes(x = fct_reorder(nombre_municipio, 
                              -n),
              y = n, fill = n)) +
   geom_col() +
@@ -100,8 +112,6 @@ municipios_dia3 %>%
 
 # Seleccion de municipios en el mapa
 
-nombres3 <- orden3[,4]
-
 
 mapa_muni_hgo3 <- mapa_hgo %>%
   mutate(corona= ifelse(NOMBRE %in% c("Pachuca de Soto", "Mineral de la Reforma", "Tulancingo de Bravo", "Tizayuca", "Emiliano Zapata", "Atotonilco de Tula", "San Agustín Tlaxiaca", "Actopan", "Chilcuautla", "Epazoyucan", "Francisco I. Madero", "Huasca de Ocampo", "Huejutla de Reyes", "Mineral del Monte", "Santiago de Anaya", "Tepeapulco", "Tepeji del Río de Ocampo", "Tetepango", "Tezontepec de Aldama"), 1, 0 ))
@@ -130,10 +140,12 @@ leaflet(mapa_muni_hgo3, options = leafletOptions(zoomControl = T)) %>%
             opacity = 1) 
 
 # Añadido 22 abril ---- 
-#defunciones por municipio 
+# defunciones totales 
 
 covid_15_04 %>% 
   filter(!is.na(FECHA_DEF)) %>% 
   filter(ENTIDAD_RES == 13 & RESULTADO == 1) %>% 
   count(FECHA_DEF) %>% 
   summarise(tot_def = sum(n))
+
+# 10 def. tot. 
